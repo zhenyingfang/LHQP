@@ -1,0 +1,28 @@
+variant: q_base
+dataset: thumos
+
+paths:
+  output_dir: runs/q_base/thumos/outputs
+  log_dir: runs/q_base/thumos/logs
+  temp_dir: runs/q_base/thumos/tmp
+  actionformer_output_dir: runs/q_base/thumos/actionformer
+  xdg_cache_home: runs/q_base/thumos/tmp/xdg_cache
+  matplotlib_config_dir: runs/q_base/thumos/tmp/matplotlib
+  python_pycache_prefix: runs/q_base/thumos/tmp/pycache
+  repo_root: .
+  opentad_root: OpenTAD
+  opentad_env: /root/autodl-tmp/conda/envs/opentad
+  train_pred: inputs/thumos/stage1_predictions.json
+  gt_anno: inputs/thumos/ground_truth.json
+  points_csv: inputs/thumos/point_labels.csv
+  pseudo_json: runs/q_base/thumos/q_base_pseudo_labels.json
+  actionformer_annotation_json: runs/q_base/thumos/actionformer_annotations/thumos_14_q_base.json
+  actionformer_config: OpenTAD/configs/actionformer/thumos_i3d.py
+
+q_base:
+  posterior_temperature: 0.1
+  consensus_temperature: 0.1
+  consensus_weight: 0.5
+  conflict_mode: distance
+  conflict_power: 2.0
+  softmax_source: true

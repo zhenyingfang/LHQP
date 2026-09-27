@@ -1,0 +1,8 @@
+mmengine
+numpy
+scipy
+einops
+pandas
+tqdm
+torch
+torchvision

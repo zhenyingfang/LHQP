@@ -1,0 +1,9 @@
+PyYAML
+numpy
+torch
+torchvision
+mmengine
+scipy
+einops
+pandas
+tqdm

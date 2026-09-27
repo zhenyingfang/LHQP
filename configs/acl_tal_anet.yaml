@@ -1,0 +1,33 @@
+variant: q_base
+dataset: activitynet
+
+paths:
+  output_dir: runs/q_base/activitynet/outputs
+  log_dir: runs/q_base/activitynet/logs
+  temp_dir: runs/q_base/activitynet/tmp
+  actionformer_output_dir: runs/q_base/activitynet/actionformer
+  xdg_cache_home: runs/q_base/activitynet/tmp/xdg_cache
+  matplotlib_config_dir: runs/q_base/activitynet/tmp/matplotlib
+  python_pycache_prefix: runs/q_base/activitynet/tmp/pycache
+  repo_root: .
+  opentad_root: OpenTAD
+  opentad_env: /root/autodl-tmp/conda/envs/opentad
+  train_pred: inputs/activitynet/stage1_predictions.json
+  gt_anno: inputs/activitynet/ground_truth.json
+  fps_json: inputs/activitynet/video_metadata.json
+  points_csv: inputs/activitynet/point_labels.csv
+  pseudo_json: runs/q_base/activitynet/q_base_pseudo_labels.json
+  actionformer_annotation_json: runs/q_base/activitynet/actionformer_annotations/activity_net.v1-3.min_q_base.json
+  actionformer_config: OpenTAD/configs/actionformer/anet_i3d.py
+
+q_base:
+  posterior_temperature: 0.1
+  consensus_temperature: 0.1
+  consensus_weight: 0.5
+  conflict_mode: distance
+  conflict_power: 2.0
+  softmax_source: true
+
+actionformer:
+  external_cls_path: inputs/activitynet/classifier.json
+  checkpoint_interval: 1

@@ -34,9 +34,8 @@ def eval_one_epoch(
         create_folder(cfg.inference["folder"])
 
     # external classifier
-    if "external_cls" in cfg.post_processing:
-        if cfg.post_processing.external_cls != None:
-            external_cls = build_classifier(cfg.post_processing.external_cls)
+    if cfg.post_processing.get("external_cls") is not None:
+        external_cls = build_classifier(cfg.post_processing.external_cls)
     else:
         external_cls = test_loader.dataset.class_map
 
@@ -46,7 +45,10 @@ def eval_one_epoch(
     # model forward
     model.eval()
     result_dict = {}
+    device = next(model.parameters()).device
     for data_dict in tqdm.tqdm(test_loader, disable=(rank != 0)):
+        for key in ("inputs", "masks"):
+            data_dict[key] = data_dict[key].to(device, non_blocking=True)
         with torch.cuda.amp.autocast(dtype=torch.float16, enabled=use_amp):
             with torch.no_grad():
                 results = model(
@@ -84,14 +86,21 @@ def eval_one_epoch(
             logger.info("Evaluation starts...")
             metrics_dict = evaluator.evaluate()
             evaluator.logging(logger)
+            with open(os.path.join(cfg.work_dir, "metrics.json"), "w") as out:
+                json.dump(metrics_dict, out, default=lambda value: value.tolist())
+
+    return result_dict
 
 
 def gather_ddp_results(world_size, result_dict, post_cfg):
-    gather_dict_list = [None for _ in range(world_size)]
-    dist.all_gather_object(gather_dict_list, result_dict)
+    if dist.is_available() and dist.is_initialized():
+        gather_dict_list = [None for _ in range(dist.get_world_size())]
+        dist.all_gather_object(gather_dict_list, result_dict)
+    else:
+        gather_dict_list = [result_dict]
     result_dict = {}
-    for i in range(world_size):  # update the result dict
-        for k, v in gather_dict_list[i].items():
+    for gathered in gather_dict_list:  # update the result dict
+        for k, v in gathered.items():
             if k in result_dict.keys():
                 result_dict[k].extend(v)
             else:

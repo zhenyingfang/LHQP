@@ -135,8 +135,8 @@ workflow = dict(
 )
 dynamic_pseudo = dict(
     enabled=True,
-    start_epoch=38,
-    stop_epoch=43,
+    start_epoch=10,
+    stop_epoch=40,
     interval=2,
     pipeline_config=str(repo_root / "configs/acl_tal_beoid.yaml"),
     initial_pseudo=str(run_root / "initial_labels/q_base_pseudo_labels.json"),
@@ -144,10 +144,15 @@ dynamic_pseudo = dict(
     top_k=10,
     beta=1.0,
     gamma=2.0,
-    min_agreement=0.30,
-    min_agreement_end=0.30,
-    update_fraction=0.90,
+    min_agreement=1.00,
+    min_agreement_end=0.00,
+    update_fraction=1.00,
     update_momentum=0.10,
+    updater_options=dict(
+        boundary_min_tiou=0.5,
+        alpha_start=0.5,
+        alpha_end=0.5,
+    ),
 )
 
 post_processing = dict(

@@ -32,8 +32,8 @@ workflow = dict(
 
 dynamic_pseudo = dict(
     enabled=True,
-    start_epoch=20,
-    stop_epoch=28,
+    start_epoch=6,
+    stop_epoch=27,
     interval=2,
     pipeline_config=str(repo_root / "configs/acl_tal.yaml"),
     initial_pseudo=str(repo_root / "runs/q_base/thumos/q_base_pseudo_labels.json"),
@@ -41,12 +41,15 @@ dynamic_pseudo = dict(
     top_k=10,
     beta=1.0,
     gamma=2.0,
-    # Raise the agreement threshold linearly across update epochs 20..28:
-    # 0.20, 0.30, ..., 1.00.
-    min_agreement=0.20,
-    min_agreement_end=1.00,
-    update_fraction=0.90,
+    min_agreement=1.00,
+    min_agreement_end=0.00,
+    update_fraction=1.00,
     update_momentum=0.90,
+    updater_options=dict(
+        boundary_min_tiou=0.5,
+        alpha_start=0.3,
+        alpha_end=0.3,
+    ),
 )
 
 work_dir = str(run_root / "actionformer")

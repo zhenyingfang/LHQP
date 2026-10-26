@@ -1,8 +1,9 @@
-"""GT-free dynamic THUMOS pseudo-label updates for ActionFormer training.
+"""GT-free dynamic THUMOS/GTEA/BEOID pseudo-label updates for ActionFormer training.
 
 The current EMA ActionFormer supplies a per-point teacher segment.  Fixed
-HR-Pro top-k proposals then refine its boundaries with the previously
-calibrated beta/gamma weighted-consensus rule.  Ground truth is used only for
+HR-Pro top-k proposals then refine its boundaries when teacher/consensus tIoU
+passes the boundary threshold, using the calibrated beta/gamma weights.
+Ground truth is used only for
 post-hoc diagnostics; no per-point update decision reads its GT segment.
 """
 from __future__ import annotations
@@ -93,7 +94,7 @@ def update_dynamic_labels(
     min_agreement: float = 0.30,
     update_fraction: float = 0.60,
     update_momentum: float = 0.70,
-    boundary_length_ratio_max: float = 1.1,
+    boundary_min_tiou: float = 0.5,
     alpha_start: float = 0.5,
     alpha_end: float = 0.1,
 ) -> dict:
@@ -157,9 +158,10 @@ def update_dynamic_labels(
             similarity = _tiou(segments, np.broadcast_to(second, segments.shape))
             weights = np.exp(beta * similarity) * np.maximum(normalized_r, 1e-12) ** gamma
             consensus = np.sum(segments * (weights / weights.sum())[:, None], axis=0)
-            top1_length = segments[0, 1] - segments[0, 0]
-            second_length = max(second[1] - second[0], 1e-8)
-            boundary_gate = bool(top1_length / second_length <= boundary_length_ratio_max)
+            consensus_agreement = float(
+                _tiou(second[None, :], consensus[None, :])[0]
+            )
+            boundary_gate = bool(consensus_agreement >= boundary_min_tiou)
             if boundary_gate:
                 target[0] = (1.0 - alpha_start) * second[0] + alpha_start * consensus[0]
                 target[1] = (1.0 - alpha_end) * second[1] + alpha_end * consensus[1]
@@ -260,7 +262,7 @@ def update_dynamic_labels(
             "min_agreement": min_agreement,
             "update_fraction": update_fraction,
             "update_momentum": update_momentum,
-            "boundary_length_ratio_max": boundary_length_ratio_max,
+            "boundary_min_tiou": boundary_min_tiou,
             "alpha_start": alpha_start,
             "alpha_end": alpha_end,
             "per_point_gt_used": False,
